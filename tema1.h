@@ -56,7 +56,8 @@ namespace m1
     protected:
         // variables here
         glm::ivec2 resolution;
-        glm::mat3 playerModelMatrix, visMatrix;
+        glm::mat3 playerBodyModelMatrix, playerPartsModelMatrix;
+        glm::mat3 visMatrix;
         float playerSquareSide, playerSmallPartsSquareSide;
         float transPlayerX, transPlayerY;
         float mouseAngle;

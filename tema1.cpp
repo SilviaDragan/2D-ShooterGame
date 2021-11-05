@@ -29,8 +29,8 @@ void Tema1::Init()
 
     logicSpace.x = 0;       // logic x
     logicSpace.y = 0;       // logic y
-    logicSpace.width = 4;   // logic width
-    logicSpace.height = 4;  // logic height
+    logicSpace.width = 100;   // logic width
+    logicSpace.height = 100;  // logic height
 
    /* glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
     length = 0.99f;*/
@@ -119,54 +119,29 @@ void Tema1::Update(float deltaTimeSeconds)
 {
 
     // pentru fereastra
-    //glm::ivec2 resolution = window->GetResolution();
+    glm::ivec2 resolution = window->GetResolution();
 
     //// Sets the screen area where to draw
-    //viewSpace = ViewportSpace(0, 0, resolution.x/2, resolution.y/2);
-    //SetViewportArea(viewSpace, glm::vec3(0.5f), true);
+    viewSpace = ViewportSpace(0, 0, resolution.x/2, resolution.y/2);
+    SetViewportArea(viewSpace, glm::vec3(0.5f), true);
 
     //// Compute the 2D visualization matrix
-    //visMatrix = glm::mat3(1);
-    //visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
-    //DrawScene(visMatrix);
+    visMatrix = glm::mat3(1);
+    visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
+    DrawScene(visMatrix);
 
-
-    //// The viewport is now the right half of the window
-    //viewSpace = ViewportSpace(resolution.x / 2, 0, resolution.x / 2, resolution.y);
-    //SetViewportArea(viewSpace, glm::vec3(0.5f), true);
-
-
-    //// Compute uniform 2D visualization matrix
-    //visMatrix = glm::mat3(1);
-    //visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
-
-    //DrawScene(visMatrix);
-
-    playerModelMatrix = glm::mat3(1);
-    playerModelMatrix =
-        transform2D::Translate(transPlayerX, transPlayerY ) *
-        /*transform2D::Rotate(mouseAngle) **/
-        transform2D::Translate(-transPlayerX, -transPlayerY);
-    RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
-
-    playerModelMatrix = glm::mat3(1);
-    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
-    RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerModelMatrix);
-
-    playerModelMatrix = glm::mat3(1);
-    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
-    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);
+    
 
 }
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    playerModelMatrix = glm::mat3(1);
-    playerModelMatrix =
-        transform2D::Translate(transPlayerX, transPlayerY) *
-        /*transform2D::Rotate(mouseAngle) **/
-        transform2D::Translate(-transPlayerX - (playerSquareSide / 2), -transPlayerY - (playerSquareSide / 2));
-    RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
+    //playerModelMatrix = glm::mat3(1);
+    //playerModelMatrix =
+    //    transform2D::Translate(transPlayerX, transPlayerY) *
+    //    /*transform2D::Rotate(mouseAngle) **/
+    //    transform2D::Translate(-transPlayerX - (playerSquareSide / 2), -transPlayerY - (playerSquareSide / 2));
+    //RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
 
     /*playerModelMatrix = glm::mat3(1);
     playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
@@ -175,6 +150,27 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     playerModelMatrix = glm::mat3(1);
     playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
     RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);*/
+
+    transPlayerX = (logicSpace.width - playerSquareSide) / 2;
+    transPlayerY = (logicSpace.width - playerSquareSide) / 2;
+
+
+    playerBodyModelMatrix = glm::mat3(1);
+    playerPartsModelMatrix = glm::mat3(1);
+    playerBodyModelMatrix =
+        visMatrix *
+        transform2D::Translate(transPlayerX + playerSquareSide / 2, transPlayerY + playerSquareSide / 2) *
+        transform2D::Rotate(mouseAngle) *
+        transform2D::Translate(-transPlayerX - playerSquareSide / 2, -transPlayerY - playerSquareSide / 2);
+    RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerBodyModelMatrix);
+
+    playerPartsModelMatrix = playerBodyModelMatrix;
+    playerPartsModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
+    RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerPartsModelMatrix);
+
+    playerPartsModelMatrix = playerBodyModelMatrix;
+    playerPartsModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
+    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerPartsModelMatrix);
 
 }
 
@@ -185,7 +181,7 @@ void Tema1::FrameEnd()
 
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
-    /*if (window->KeyHold(GLFW_KEY_W))
+    if (window->KeyHold(GLFW_KEY_W))
         logicSpace.y += 10 * deltaTime;
 
     if (window->KeyHold(GLFW_KEY_S))
@@ -208,7 +204,7 @@ void Tema1::OnInputUpdate(float deltaTime, int mods){
     }
 
 
-    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);*/
+    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);
 }
 
 
