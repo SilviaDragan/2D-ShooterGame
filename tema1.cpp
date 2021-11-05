@@ -21,7 +21,7 @@ void Tema1::Init()
 {
     resolution = window->GetResolution();
     auto camera = GetSceneCamera();
-    //camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
+    camera->SetOrthographic(0, (float)resolution.x, 0, (float)resolution.y, 0.01f, 400);
     camera->SetPosition(glm::vec3(0, 0, 50));
     camera->SetRotation(glm::vec3(0, 0, 0));
     camera->Update();
@@ -32,18 +32,18 @@ void Tema1::Init()
     logicSpace.width = 4;   // logic width
     logicSpace.height = 4;  // logic height
 
-    glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
-    length = 0.99f;
+   /* glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
+    length = 0.99f;*/
 
-    //glm::vec3 corner = glm::vec3(1, 0, 0);
+    glm::vec3 corner = glm::vec3(1, 0, 0);
     playerSquareSide = 100, playerSmallPartsSquareSide = 25;
-    transPlayerX = 600;
-    transPlayerY = 200;
+    transPlayerX = (resolution.x - playerSquareSide) / 2;
+    transPlayerY = (resolution.y - playerSquareSide) / 2;
     mouseAngle = 0;
 
-    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(600, 200, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
-    Mesh* playerSmallPart1 = object2D::CreateSquare("playerSmallPart1", glm::vec3(700, 200, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
-    Mesh* playerSmallPart2 = object2D::CreateSquare("playerSmallPart2", glm::vec3(700, 200, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
+    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(transPlayerX, transPlayerY, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
+    Mesh* playerSmallPart1 = object2D::CreateSquare("playerSmallPart1", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
+    Mesh* playerSmallPart2 = object2D::CreateSquare("playerSmallPart2", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
 
     AddMeshToList(playerBody);
     AddMeshToList(playerSmallPart1);
@@ -68,6 +68,20 @@ glm::mat3 Tema1::VisualizationTransf2DUnif(const LogicSpace& logicSpace, const V
     return glm::transpose(glm::mat3(
         smin, 0.0f, tx,
         0.0f, smin, ty,
+        0.0f, 0.0f, 1.0f));
+}
+
+glm::mat3 Tema1::VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace)
+{
+    float sx, sy, tx, ty;
+    sx = viewSpace.width / logicSpace.width;
+    sy = viewSpace.height / logicSpace.height;
+    tx = viewSpace.x - sx * logicSpace.x;
+    ty = viewSpace.y - sy * logicSpace.y;
+
+    return glm::transpose(glm::mat3(
+        sx, 0.0f, tx,
+        0.0f, sy, ty,
         0.0f, 0.0f, 1.0f));
 }
 
@@ -96,12 +110,56 @@ void Tema1::FrameStart()
 
     // asta era inainte de viewport si chestii
 
-    //glm::ivec2 resolution = window->GetResolution();
-    //// Sets the screen area where to draw
-    //glViewport(0, 0, resolution.x, resolution.y);
+    glm::ivec2 resolution = window->GetResolution();
+    // Sets the screen area where to draw
+    glViewport(0, 0, resolution.x, resolution.y);
 }
 
 void Tema1::Update(float deltaTimeSeconds) 
+{
+
+    // pentru fereastra
+    //glm::ivec2 resolution = window->GetResolution();
+
+    //// Sets the screen area where to draw
+    //viewSpace = ViewportSpace(0, 0, resolution.x/2, resolution.y/2);
+    //SetViewportArea(viewSpace, glm::vec3(0.5f), true);
+
+    //// Compute the 2D visualization matrix
+    //visMatrix = glm::mat3(1);
+    //visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
+    //DrawScene(visMatrix);
+
+
+    //// The viewport is now the right half of the window
+    //viewSpace = ViewportSpace(resolution.x / 2, 0, resolution.x / 2, resolution.y);
+    //SetViewportArea(viewSpace, glm::vec3(0.5f), true);
+
+
+    //// Compute uniform 2D visualization matrix
+    //visMatrix = glm::mat3(1);
+    //visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
+
+    //DrawScene(visMatrix);
+
+    playerModelMatrix = glm::mat3(1);
+    playerModelMatrix =
+        transform2D::Translate(transPlayerX, transPlayerY ) *
+        /*transform2D::Rotate(mouseAngle) **/
+        transform2D::Translate(-transPlayerX, -transPlayerY);
+    RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
+
+    playerModelMatrix = glm::mat3(1);
+    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
+    RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerModelMatrix);
+
+    playerModelMatrix = glm::mat3(1);
+    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
+    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);
+
+}
+
+void Tema1::DrawScene(glm::mat3 visMatrix)
 {
     playerModelMatrix = glm::mat3(1);
     playerModelMatrix =
@@ -110,15 +168,13 @@ void Tema1::Update(float deltaTimeSeconds)
         transform2D::Translate(-transPlayerX - (playerSquareSide / 2), -transPlayerY - (playerSquareSide / 2));
     RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
 
-    playerModelMatrix = glm::mat3(1);
+    /*playerModelMatrix = glm::mat3(1);
     playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
     RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerModelMatrix);
-   
+
     playerModelMatrix = glm::mat3(1);
-    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide- playerSmallPartsSquareSide));
-    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);
-
-
+    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
+    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);*/
 
 }
 
@@ -127,8 +183,32 @@ void Tema1::FrameEnd()
 }
 
 
-void Tema1::OnInputUpdate(float deltaTime, int mods)
-{
+void Tema1::OnInputUpdate(float deltaTime, int mods){
+    // Move the logic window with W, A, S, D (up, left, down, right)
+    /*if (window->KeyHold(GLFW_KEY_W))
+        logicSpace.y += 10 * deltaTime;
+
+    if (window->KeyHold(GLFW_KEY_S))
+        logicSpace.y -= 10 * deltaTime;
+
+    if (window->KeyHold(GLFW_KEY_A))
+        logicSpace.x -= 10 * deltaTime;
+
+    if (window->KeyHold(GLFW_KEY_D))
+        logicSpace.x += 10 * deltaTime;
+
+    if (window->KeyHold(GLFW_KEY_Z)) {
+        logicSpace.width -= 10 * deltaTime;
+        logicSpace.height -= 10 * deltaTime;
+    }
+
+    if (window->KeyHold(GLFW_KEY_X)) {
+        logicSpace.width += 10 * deltaTime;
+        logicSpace.height += 10 * deltaTime;
+    }
+
+
+    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);*/
 }
 
 
