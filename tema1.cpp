@@ -29,26 +29,46 @@ void Tema1::Init()
 
     logicSpace.x = 0;       // logic x
     logicSpace.y = 0;       // logic y
-    logicSpace.width = 100;   // logic width
-    logicSpace.height = 100;  // logic height
+    logicSpace.width = 200;   // logic width
+    logicSpace.height = 200;  // logic height
 
-   /* glm::vec3 corner = glm::vec3(0.001, 0.001, 0);
-    length = 0.99f;*/
 
     glm::vec3 corner = glm::vec3(1, 0, 0);
-    playerSquareSide = 100, playerSmallPartsSquareSide = 25;
-    transPlayerX = (resolution.x - playerSquareSide) / 2;
-    transPlayerY = (resolution.y - playerSquareSide) / 2;
+    playerSquareSide = 50, playerSmallPartsSquareSide = 10;
+    transPlayerX = (logicSpace.width - playerSquareSide) / 2;
+    transPlayerY = (logicSpace.height - playerSquareSide) / 2;
+    transSmallPartsX = transPlayerX;
+    transSmallPartsY = transPlayerY;
+
     mouseAngle = 0;
+
+    /*transPlayerX = (resolution.x - playerSquareSide) / 2;
+    transPlayerY = (resolution.y - playerSquareSide) / 2;*/
+
+    mapLength = 800;
+    obstacleLength = 200;
+
+    projectileLength = 20;
+    spawnProjectile = false;
 
     Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(transPlayerX, transPlayerY, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
     Mesh* playerSmallPart1 = object2D::CreateSquare("playerSmallPart1", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
     Mesh* playerSmallPart2 = object2D::CreateSquare("playerSmallPart2", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
+    Mesh* map = object2D::CreateSquare("map", glm::vec3(0, 0, 0), mapLength, glm::vec3(0.25f, 0, 0.75f));
+    Mesh* obs1 = object2D::CreateSquare("obs1", glm::vec3(0, 0, 0), obstacleLength, glm::vec3(0, 0.25f, 0.5f), true);
+    Mesh* obs2 = object2D::CreateSquare("obs2", glm::vec3(0, 0, 0), obstacleLength, glm::vec3(0, 0.25f, 0.5f), true);
+    Mesh* obs3 = object2D::CreateSquare("obs3", glm::vec3(0, 0, 0), obstacleLength, glm::vec3(0, 0.25f, 0.5f), true);
+    Mesh* projectile = object2D::CreateSquare("projectile", glm::vec3(0, 0, 0), projectileLength, glm::vec3(0.2f, 0.5f, 0), true);
+
 
     AddMeshToList(playerBody);
     AddMeshToList(playerSmallPart1);
     AddMeshToList(playerSmallPart2);
-
+    AddMeshToList(map);
+    AddMeshToList(obs1);
+    AddMeshToList(obs2);
+    AddMeshToList(obs3);
+    AddMeshToList(projectile);
 
 }
 
@@ -122,7 +142,7 @@ void Tema1::Update(float deltaTimeSeconds)
     glm::ivec2 resolution = window->GetResolution();
 
     //// Sets the screen area where to draw
-    viewSpace = ViewportSpace(0, 0, resolution.x/2, resolution.y/2);
+    viewSpace = ViewportSpace(50, 50, resolution.x/2, resolution.y/2);
     SetViewportArea(viewSpace, glm::vec3(0.5f), true);
 
     //// Compute the 2D visualization matrix
@@ -130,47 +150,63 @@ void Tema1::Update(float deltaTimeSeconds)
     visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
     DrawScene(visMatrix);
 
-    
-
 }
 
 void Tema1::DrawScene(glm::mat3 visMatrix)
 {
-    //playerModelMatrix = glm::mat3(1);
-    //playerModelMatrix =
-    //    transform2D::Translate(transPlayerX, transPlayerY) *
-    //    /*transform2D::Rotate(mouseAngle) **/
-    //    transform2D::Translate(-transPlayerX - (playerSquareSide / 2), -transPlayerY - (playerSquareSide / 2));
-    //RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerModelMatrix);
 
-    /*playerModelMatrix = glm::mat3(1);
-    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
-    RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerModelMatrix);
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(50, 50) *
+        transform2D::Scale(1.5f, 0.75f);
+    RenderMesh2D(meshes["map"], shaders["VertexColor"], mapModel);
 
-    playerModelMatrix = glm::mat3(1);
-    playerModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
-    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerModelMatrix);*/
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(300, 100) *
+        transform2D::Scale(1.5f, 0.75f);
+    RenderMesh2D(meshes["obs1"], shaders["VertexColor"], mapModel);
 
-    transPlayerX = (logicSpace.width - playerSquareSide) / 2;
-    transPlayerY = (logicSpace.width - playerSquareSide) / 2;
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(800, 200) *
+        transform2D::Scale(0.5f, 1.75f);
+    RenderMesh2D(meshes["obs2"], shaders["VertexColor"], mapModel);
 
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(100, 500) *
+        transform2D::Scale(2.5f, 0.25);
+    RenderMesh2D(meshes["obs2"], shaders["VertexColor"], mapModel);
 
     playerBodyModelMatrix = glm::mat3(1);
     playerPartsModelMatrix = glm::mat3(1);
+
     playerBodyModelMatrix =
-        visMatrix *
+        //visMatrix *
         transform2D::Translate(transPlayerX + playerSquareSide / 2, transPlayerY + playerSquareSide / 2) *
-        transform2D::Rotate(mouseAngle) *
+        //transform2D::Rotate(mouseAngle) *
         transform2D::Translate(-transPlayerX - playerSquareSide / 2, -transPlayerY - playerSquareSide / 2);
     RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerBodyModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY);
+    playerPartsModelMatrix *= transform2D::Translate(transSmallPartsX + playerSquareSide, transSmallPartsY);
     RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerPartsModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *= transform2D::Translate(transPlayerX + playerSquareSide, transPlayerY + (playerSquareSide - playerSmallPartsSquareSide));
+    playerPartsModelMatrix *=transform2D::Translate(transSmallPartsX + playerSquareSide, transSmallPartsY + (playerSquareSide - playerSmallPartsSquareSide));
     RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerPartsModelMatrix);
+
+    if (spawnProjectile) {
+        projectileMatrix = playerBodyModelMatrix;
+        projectileMatrix *= transform2D::Translate(transSmallPartsX + 2*projectileLength, transSmallPartsY);
+        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], playerPartsModelMatrix);
+        spawnProjectile = false;
+    }
 
 }
 
@@ -181,30 +217,26 @@ void Tema1::FrameEnd()
 
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
-    if (window->KeyHold(GLFW_KEY_W))
-        logicSpace.y += 10 * deltaTime;
-
-    if (window->KeyHold(GLFW_KEY_S))
-        logicSpace.y -= 10 * deltaTime;
-
-    if (window->KeyHold(GLFW_KEY_A))
-        logicSpace.x -= 10 * deltaTime;
-
-    if (window->KeyHold(GLFW_KEY_D))
-        logicSpace.x += 10 * deltaTime;
-
-    if (window->KeyHold(GLFW_KEY_Z)) {
-        logicSpace.width -= 10 * deltaTime;
-        logicSpace.height -= 10 * deltaTime;
+    if (window->KeyHold(GLFW_KEY_W)) {
+        logicSpace.y += 50 * deltaTime;
+        transPlayerY += 50 * deltaTime;
     }
+    if (window->KeyHold(GLFW_KEY_S)) {
+        logicSpace.y -= 50 * deltaTime;
+        transPlayerY -= 50 * deltaTime;
 
-    if (window->KeyHold(GLFW_KEY_X)) {
-        logicSpace.width += 10 * deltaTime;
-        logicSpace.height += 10 * deltaTime;
     }
+    if (window->KeyHold(GLFW_KEY_A)) {
+        logicSpace.x -= 50 * deltaTime;
+        transPlayerX -= 50 * deltaTime;
 
+    }
+    if (window->KeyHold(GLFW_KEY_D)) {
+        logicSpace.x += 50 * deltaTime;
+        transPlayerX += 50 * deltaTime;
 
-    visMatrix *= VisualizationTransf2D(logicSpace, viewSpace);
+    }
+    visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
 }
 
 
@@ -230,7 +262,9 @@ void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 
 void Tema1::OnMouseBtnPress(int mouseX, int mouseY, int button, int mods)
 {
-    // Add mouse button press event
+    if (IS_BIT_SET(button, GLFW_MOUSE_BUTTON_RIGHT)) {
+        spawnProjectile = true;
+    }
 }
 
 

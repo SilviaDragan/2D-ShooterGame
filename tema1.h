@@ -58,10 +58,16 @@ namespace m1
         glm::ivec2 resolution;
         glm::mat3 playerBodyModelMatrix, playerPartsModelMatrix;
         glm::mat3 visMatrix;
+        glm::mat3 mapModel, projectileMatrix;
         float playerSquareSide, playerSmallPartsSquareSide;
-        float transPlayerX, transPlayerY;
+        float transPlayerX, transPlayerY, transSmallPartsX, transSmallPartsY;
         float mouseAngle;
-        float length;
+
+        float mapLength, mapScaleFactor, obstacleLength;
+
+        float projectileLength;
+        bool spawnProjectile;
+
 
         ViewportSpace viewSpace;
         LogicSpace logicSpace;
