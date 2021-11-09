@@ -29,29 +29,35 @@ void Tema1::Init()
 
     logicSpace.x = 0;       // logic x
     logicSpace.y = 0;       // logic y
-    logicSpace.width = 200;   // logic width
-    logicSpace.height = 200;  // logic height
-
+    logicSpace.width = resolution.x;   // logic width
+    logicSpace.height = resolution.y;  // logic height
 
     glm::vec3 corner = glm::vec3(1, 0, 0);
-    playerSquareSide = 50, playerSmallPartsSquareSide = 10;
-    transPlayerX = (logicSpace.width - playerSquareSide) / 2;
-    transPlayerY = (logicSpace.height - playerSquareSide) / 2;
-    transSmallPartsX = transPlayerX;
-    transSmallPartsY = transPlayerY;
+    playerSquareSide = 100, playerSmallPartsSquareSide = 20;
+    transPlayerX = (logicSpace.width + playerSquareSide) / 2;
+    transPlayerY = (logicSpace.height + playerSquareSide) / 2;
+
+    /*transSmallPartsX = transPlayerX;
+    transSmallPartsY = transPlayerY;*/
 
     mouseAngle = 0;
 
     /*transPlayerX = (resolution.x - playerSquareSide) / 2;
     transPlayerY = (resolution.y - playerSquareSide) / 2;*/
 
+
+    // idee: foloseste fisiere separate +  stucturi pentru map, projectile, obstacole.
     mapLength = 800;
     obstacleLength = 200;
 
     projectileLength = 20;
     spawnProjectile = false;
+    transProjectileX = projectileLength;
+     transProjectileY = -projectileLength;
+    projectilePozitionX = transPlayerX + transProjectileX;
+    projectilePozitionY = transPlayerY + transProjectileY;
 
-    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(transPlayerX, transPlayerY, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
+    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(0, 0, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
     Mesh* playerSmallPart1 = object2D::CreateSquare("playerSmallPart1", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
     Mesh* playerSmallPart2 = object2D::CreateSquare("playerSmallPart2", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
     Mesh* map = object2D::CreateSquare("map", glm::vec3(0, 0, 0), mapLength, glm::vec3(0.25f, 0, 0.75f));
@@ -130,7 +136,7 @@ void Tema1::FrameStart()
 
     // asta era inainte de viewport si chestii
 
-    glm::ivec2 resolution = window->GetResolution();
+    resolution = window->GetResolution();
     // Sets the screen area where to draw
     glViewport(0, 0, resolution.x, resolution.y);
 }
@@ -139,36 +145,39 @@ void Tema1::Update(float deltaTimeSeconds)
 {
 
     // pentru fereastra
-    glm::ivec2 resolution = window->GetResolution();
+    resolution = window->GetResolution();
 
     //// Sets the screen area where to draw
-    viewSpace = ViewportSpace(50, 50, resolution.x/2, resolution.y/2);
+    viewSpace = ViewportSpace(0, 0, resolution.x, resolution.y);
     SetViewportArea(viewSpace, glm::vec3(0.5f), true);
 
     //// Compute the 2D visualization matrix
     visMatrix = glm::mat3(1);
     visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
-    DrawScene(visMatrix);
+    DrawScene(visMatrix, deltaTimeSeconds);
 
 }
 
-void Tema1::DrawScene(glm::mat3 visMatrix)
+void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
 {
 
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(50, 50) *
+        transform2D::Translate(-150, -150) *
         transform2D::Scale(1.5f, 0.75f);
     RenderMesh2D(meshes["map"], shaders["VertexColor"], mapModel);
 
+
+    // scoate coordonatele astea hardcodate, mersi
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(300, 100) *
-        transform2D::Scale(1.5f, 0.75f);
+        transform2D::Translate(100, -50) *
+        transform2D::Scale(1.75f, 0.5f);
     RenderMesh2D(meshes["obs1"], shaders["VertexColor"], mapModel);
 
+    // scoate coordonatele astea hardcodate, mersi
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
@@ -176,6 +185,7 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
         transform2D::Scale(0.5f, 1.75f);
     RenderMesh2D(meshes["obs2"], shaders["VertexColor"], mapModel);
 
+    // scoate coordonatele astea hardcodate, mersi
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
@@ -186,27 +196,40 @@ void Tema1::DrawScene(glm::mat3 visMatrix)
     playerBodyModelMatrix = glm::mat3(1);
     playerPartsModelMatrix = glm::mat3(1);
 
+
     playerBodyModelMatrix =
-        //visMatrix *
-        transform2D::Translate(transPlayerX + playerSquareSide / 2, transPlayerY + playerSquareSide / 2) *
-        //transform2D::Rotate(mouseAngle) *
-        transform2D::Translate(-transPlayerX - playerSquareSide / 2, -transPlayerY - playerSquareSide / 2);
+        transform2D::Translate((resolution.x - playerSquareSide) / 2, (resolution.y - playerSquareSide) / 2) *
+        transform2D::Translate(playerSquareSide / 2, playerSquareSide / 2) *
+        transform2D::Rotate(mouseAngle) *
+        transform2D::Translate(-playerSquareSide/2, -playerSquareSide/2);
+        
     RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerBodyModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *= transform2D::Translate(transSmallPartsX + playerSquareSide, transSmallPartsY);
+    playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, 0);
+
     RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerPartsModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *=transform2D::Translate(transSmallPartsX + playerSquareSide, transSmallPartsY + (playerSquareSide - playerSmallPartsSquareSide));
+    playerPartsModelMatrix *=transform2D::Translate(playerSquareSide, playerSquareSide - playerSmallPartsSquareSide);
+
     RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerPartsModelMatrix);
 
     if (spawnProjectile) {
-        projectileMatrix = playerBodyModelMatrix;
-        projectileMatrix *= transform2D::Translate(transSmallPartsX + 2*projectileLength, transSmallPartsY);
-        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], playerPartsModelMatrix);
-        spawnProjectile = false;
+
+        if (projectilePozitionX < mapLength - 150) {
+            projectilePozitionX += deltaTimeSeconds * 10;
+        }
+        else {
+            spawnProjectile = false;
+        }
+
+        projectileMatrix = playerPartsModelMatrix;
+        projectileMatrix *= transform2D::Translate(transProjectileX, -transProjectileY);
+        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
+        
     }
+
 
 }
 
@@ -218,24 +241,25 @@ void Tema1::FrameEnd()
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
     if (window->KeyHold(GLFW_KEY_W)) {
-        logicSpace.y += 50 * deltaTime;
-        transPlayerY += 50 * deltaTime;
+        logicSpace.y += 100 * deltaTime;
+        transPlayerY += 100 * deltaTime;
     }
     if (window->KeyHold(GLFW_KEY_S)) {
-        logicSpace.y -= 50 * deltaTime;
-        transPlayerY -= 50 * deltaTime;
+        logicSpace.y -= 100 * deltaTime;
+        transPlayerY -= 100 * deltaTime;
 
     }
     if (window->KeyHold(GLFW_KEY_A)) {
-        logicSpace.x -= 50 * deltaTime;
-        transPlayerX -= 50 * deltaTime;
+        logicSpace.x -= 100 * deltaTime;
+        transPlayerX -= 100 * deltaTime;
 
     }
     if (window->KeyHold(GLFW_KEY_D)) {
-        logicSpace.x += 50 * deltaTime;
-        transPlayerX += 50 * deltaTime;
+        logicSpace.x += 100 * deltaTime;
+        transPlayerX += 100 * deltaTime;
 
     }
+
     visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
 }
 
@@ -255,7 +279,7 @@ void Tema1::OnKeyRelease(int key, int mods)
 void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
 {
     // Add mouse move event
-    mouseAngle = atan2(mouseX - resolution.x/2 - playerSquareSide / 2, mouseY - resolution.y/2 - playerSquareSide / 2);
+    mouseAngle = atan2(mouseX - resolution.x/2, mouseY - resolution.y/2);
 
 }
 
@@ -281,4 +305,14 @@ void Tema1::OnMouseScroll(int mouseX, int mouseY, int offsetX, int offsetY)
 
 void Tema1::OnWindowResize(int width, int height)
 {
+    // update coordinates according to window size
+
+    resolution = window->GetResolution();
+    /*logicSpacePozX = resolution.x / 4;
+    logicSpacePozY = resolution.y / 4;
+    logicSpace.width = resolution.x / 2;
+    logicSpace.height = resolution.y / 2;
+    transPlayerX = (logicSpace.width - playerSquareSide) / 2 + logicSpacePozX;
+    transPlayerY = (logicSpace.height - playerSquareSide) / 2 + logicSpacePozY;*/
+
 }

@@ -51,7 +51,7 @@ namespace m1
         glm::mat3 VisualizationTransf2DUnif(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
         glm::mat3 VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
         void SetViewportArea(const ViewportSpace& viewSpace, glm::vec3 colorColor = glm::vec3(0), bool clear = true);
-        void DrawScene(glm::mat3 visMatrix);
+        void DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds);
 
     protected:
         // variables here
@@ -63,9 +63,12 @@ namespace m1
         float transPlayerX, transPlayerY, transSmallPartsX, transSmallPartsY;
         float mouseAngle;
 
+        float logicSpacePozX, logicSpacePozY;
+
         float mapLength, mapScaleFactor, obstacleLength;
 
-        float projectileLength;
+
+        float projectileLength, transProjectileX, transProjectileY, projectilePozitionX, projectilePozitionY;
         bool spawnProjectile;
 
 
