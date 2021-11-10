@@ -1,6 +1,7 @@
 #pragma once
 #include "components/simple_scene.h"
-
+#include "lab_m1/tema1/Map.h"
+#include "utils/math_utils.h"
 
 namespace m1
 {
@@ -52,6 +53,8 @@ namespace m1
         glm::mat3 VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
         void SetViewportArea(const ViewportSpace& viewSpace, glm::vec3 colorColor = glm::vec3(0), bool clear = true);
         void DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds);
+        void Tema1::DrawMap(glm::mat3 visMatrix);
+        void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
 
     protected:
         // variables here
@@ -63,7 +66,7 @@ namespace m1
         float transPlayerX, transPlayerY, transSmallPartsX, transSmallPartsY;
         float mouseAngle;
 
-        float logicSpacePozX, logicSpacePozY;
+        Map* map = new Map();
 
         float mapLength, mapScaleFactor, obstacleLength;
 
