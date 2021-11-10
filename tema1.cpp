@@ -153,6 +153,21 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
     DrawMap(visMatrix);
     DrawPlayer(visMatrix, deltaTimeSeconds);
 
+    if (spawnProjectile) {
+        projectilePozitionX = resolution.x / 2;
+        if (projectilePozitionX < mapLength + 1000) {
+            projectilePozitionX += deltaTimeSeconds * 100;
+            transProjectileX += deltaTimeSeconds * 100;
+
+        }
+        else {
+            spawnProjectile = false;
+        }
+        projectileMatrix = playerPartsModelMatrix;
+        projectileMatrix *= visMatrix * transform2D::Translate(transProjectileX, transProjectileY);
+        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
+
+    }
     
 }
 
@@ -209,19 +224,7 @@ void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds) {
     playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, playerSquareSide - playerSmallPartsSquareSide);
 
     RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerPartsModelMatrix);
-    if (spawnProjectile) {
-        projectilePozitionX = resolution.x / 2;
-        if (projectilePozitionX < mapLength + 1000) {
-            projectilePozitionX += deltaTimeSeconds * 100;
-        }
-        else {
-            spawnProjectile = false;
-        }
-        projectileMatrix = playerPartsModelMatrix;
-        projectileMatrix *= transform2D::Translate(transProjectileX, transProjectileY);
-        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
-
-    }
+   
 }
 
 void Tema1::FrameEnd()
