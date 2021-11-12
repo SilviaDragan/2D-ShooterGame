@@ -1,7 +1,14 @@
 #pragma once
 #include "components/simple_scene.h"
 #include "lab_m1/tema1/Map.h"
+#include "lab_m1/tema1/Enemy.h"
 #include "utils/math_utils.h"
+#include <stdlib.h>
+#include <vector>
+#include <time.h>    
+#include <iostream>
+#include "lab_m1/lab3/transform2D.h"
+#include "lab_m1/lab3/object2D.h"
 
 namespace m1
 {
@@ -55,6 +62,7 @@ namespace m1
         void DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds);
         void Tema1::DrawMap(glm::mat3 visMatrix);
         void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
+        void Tema1::DrawEnemy(glm::mat3 visMatrix, float deltaTimeSeconds);
 
     protected:
         // variables here
@@ -67,6 +75,22 @@ namespace m1
         float mouseAngle;
 
         Map* map = new Map();
+        float mapCorner;
+
+        //enemy just for rendering meshes
+        Enemy* enemy;
+
+        vector<int> enemies;
+        glm::mat3 enemyBodyModelMatrix;
+        glm::mat3 enemyArmsModelMatrix;
+        float enemySpeed;
+        float enemyPozX, enemyPozY;
+
+
+        clock_t currentTime;
+        clock_t lastTime;
+        float timeCount;
+
 
         float mapLength, mapScaleFactor, obstacleLength;
 

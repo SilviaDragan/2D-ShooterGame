@@ -1,13 +1,9 @@
-#include "lab_m1/tema1/tema1.h"
-
-#include <vector>
-#include <iostream>
-#include "lab_m1/lab3/transform2D.h"
-#include "lab_m1/lab3/object2D.h"
-
+#include "lab_m1/tema1/tema1.h";
 
 using namespace std;
 using namespace m1;
+
+#define MAX_ENEMIES 10
 
 Tema1::Tema1()
 {
@@ -44,8 +40,13 @@ void Tema1::Init()
 
 
     // idee: foloseste fisiere separate +  stucturi pentru map, projectile, obstacole.
-    mapLength = 1000;  obstacleLength = 200;
+    mapLength = 1000;  
+    mapCorner = -150;
+    obstacleLength = 200;
 
+    currentTime = clock();
+    lastTime = currentTime;
+    timeCount = 0;
 
 
     projectileLength = 20;
@@ -53,20 +54,24 @@ void Tema1::Init()
     transProjectileX = projectileLength;
     transProjectileY = -projectileLength;
     projectilePozitionX = (resolution.x - playerSquareSide) / 2 + projectileLength;
-    projectilePozitionY = (resolution.y - playerSquareSide) / 2 + transProjectileY;
+    projectilePozitionY = (resolution.y - playerSquareSide) / 2 -projectileLength;
 
-    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(0, 0, 0), playerSquareSide, glm::vec3(1, 0, 0), true);
-    Mesh* playerSmallPart1 = object2D::CreateSquare("playerSmallPart1", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
-    Mesh* playerSmallPart2 = object2D::CreateSquare("playerSmallPart2", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 1, 0), true);
+    Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(0, 0, 0), playerSquareSide, glm::vec3(0.1f, 0.4f, 0.3f), true);
+    Mesh* playerSmallPart = object2D::CreateSquare("playerSmallPart", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 0.6f, 0.3f), true);
     Mesh* projectile = object2D::CreateSquare("projectile", glm::vec3(0, 0, 0), projectileLength, glm::vec3(0.2f, 0.5f, 0), true);
 
+    enemy = new Enemy();
+    //enemies.resize(MAX_ENEMIES);
 
     AddMeshToList(playerBody);
-    AddMeshToList(playerSmallPart1);
-    AddMeshToList(playerSmallPart2);
+    AddMeshToList(playerSmallPart);
     AddMeshToList(map->generateMapMesh(mapLength));
     AddMeshToList(map->generateObstacleMesh(obstacleLength));
     AddMeshToList(projectile);
+    AddMeshToList(enemy->generateEnemyBodyMesh());
+    AddMeshToList(enemy->generateEnemyArmsMesh());
+    AddMeshToList(projectile);
+
 
 }
 
@@ -153,18 +158,45 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
     DrawMap(visMatrix);
     DrawPlayer(visMatrix, deltaTimeSeconds);
 
+    // la fiecare 15 secunde spawnez un inamic nou pe harta
+    currentTime = clock();
+    timeCount += (float) (currentTime - lastTime);
+    
+    //if (timeCount >= 30) {
+    //    // spawn new enemy at random place in map
+
+
+    //    
+    //    // reset  enemy spawn timer
+    //    timeCount = 0;
+    //}
+
+    //// 
+    //for () {
+
+    //}
+    DrawEnemy(visMatrix, deltaTimeSeconds);
+
+
+    // TODO: sa nu se mai miste dupa ce se spawneaza pe aceeasi directie cu playerul
+    // sa se poata spawna mai multe
     if (spawnProjectile) {
-        projectilePozitionX = resolution.x / 2;
-        if (projectilePozitionX < mapLength + 1000) {
-            projectilePozitionX += deltaTimeSeconds * 100;
-            transProjectileX += deltaTimeSeconds * 100;
+        //projectilePozitionX = resolution.x / 2;
+        // nu e buna asta cu map length
+        // dupa primul, nu se spawneaza bine urmatoarele 
+        if (projectilePozitionX < mapLength && projectilePozitionY < mapLength) {
+            projectilePozitionX += deltaTimeSeconds * 200;
+            transProjectileX += deltaTimeSeconds * 200;
 
         }
         else {
             spawnProjectile = false;
+            // reset bullet pozition 
+            projectilePozitionX = (resolution.x - playerSquareSide) / 2 + projectileLength;
+            projectilePozitionY = (resolution.y - playerSquareSide) / 2 + transProjectileY;
         }
         projectileMatrix = playerPartsModelMatrix;
-        projectileMatrix *= visMatrix * transform2D::Translate(transProjectileX, transProjectileY);
+        projectileMatrix *=  transform2D::Translate(transProjectileX, transProjectileY);
         RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
 
     }
@@ -175,8 +207,8 @@ void Tema1::DrawMap(glm::mat3 visMatrix) {
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(-150, -150) *
-        transform2D::Scale(1.5f, 0.75f);
+        transform2D::Translate(mapCorner, mapCorner) *
+        transform2D::Scale(2, 1);
     RenderMesh2D(meshes["map"], shaders["VertexColor"], mapModel);
 
 
@@ -218,13 +250,30 @@ void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds) {
     playerPartsModelMatrix = playerBodyModelMatrix;
     playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, 0);
 
-    RenderMesh2D(meshes["playerSmallPart1"], shaders["VertexColor"], playerPartsModelMatrix);
+    RenderMesh2D(meshes["playerSmallPart"], shaders["VertexColor"], playerPartsModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
     playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, playerSquareSide - playerSmallPartsSquareSide);
 
-    RenderMesh2D(meshes["playerSmallPart2"], shaders["VertexColor"], playerPartsModelMatrix);
+    RenderMesh2D(meshes["playerSmallPart"], shaders["VertexColor"], playerPartsModelMatrix);
    
+}
+
+void Tema1::DrawEnemy(glm::mat3 visMatrix, float deltaTimeSeconds) { 
+    
+    // un inamic trebuie spwnat 1 la 15 scunde la o pozitie random pe harta 
+    enemyArmsModelMatrix = glm::mat3(1);
+    enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -90);
+    RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
+
+    enemyArmsModelMatrix = glm::mat3(1);
+    enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -150);
+    RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
+
+
+    enemyBodyModelMatrix = glm::mat3(1);
+    enemyBodyModelMatrix = visMatrix * transform2D::Translate(-140, -140);
+    RenderMesh2D(meshes["enemyBody"], shaders["VertexColor"], enemyBodyModelMatrix);
 }
 
 void Tema1::FrameEnd()
