@@ -11,8 +11,12 @@ namespace m1 {
 		Mesh* generateEnemyBodyMesh();
 		Mesh* generateEnemyArmsMesh();
 		float pozX, pozY;
+		//float translateX, translateY;
+
 		float enemyBodySquareSide = 80;
 		float enemyArmsSquareSide = 40;
+		bool defeated;
+		float speed;
 	};
 
 }
