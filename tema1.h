@@ -78,7 +78,7 @@ namespace m1
         float mouseAngle;
 
         Map* map = new Map();
-        float mapLength, mapScaleFactor, obstacleLength;
+        float mapLength, obstacleLength;
         float mapCorner;
         float mapScaleX, mapScaleY;
 

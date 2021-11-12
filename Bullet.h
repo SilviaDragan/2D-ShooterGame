@@ -13,7 +13,7 @@ namespace m1 {
 		float projectileLength, transProjectileX, transProjectileY, positionX, positionY;
 		float angle;
 		float speed;
-		float intialX, intialY;
+		float initialX, initialY;
 
 	};
 

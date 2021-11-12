@@ -1,11 +1,6 @@
 #include "lab_m1/tema1/tema1.h";
 
-using namespace std;
 using namespace m1;
-
-#define MAX_ENEMIES 10
-#define MAX_BULLETS 5
-
 
 Tema1::Tema1()
 {
@@ -18,6 +13,7 @@ Tema1::~Tema1()
 
 void Tema1::Init()
 {
+    srand(time(0));
     
     resolution = window->GetResolution();
     auto camera = GetSceneCamera();
@@ -41,7 +37,6 @@ void Tema1::Init()
     mouseAngle = 0;
 
     mapLength = 1000;  
-    mapCorner = -150;
     obstacleLength = 200;
     mapScaleX = 2; mapScaleY = 1;
 
@@ -51,8 +46,7 @@ void Tema1::Init()
 
     Bullet* bullet = new Bullet();
     bullet->projectileLength = 20;
-    spawnProjectile = false;
-    bullets.resize(MAX_BULLETS);
+    spawnNewProjectile = false;
     /*transProjectileX = projectileLength;
     transProjectileY = -projectileLength;*/
 
@@ -68,7 +62,6 @@ void Tema1::Init()
     // enemy just for rendering meshez
     enemy = new Enemy();
     // initialize enemies list
-    enemies.resize(MAX_ENEMIES);
 
   
 
@@ -159,8 +152,7 @@ void Tema1::Update(float deltaTimeSeconds)
 
 }
 
-void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
-{
+void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
     DrawMap(visMatrix);
     DrawPlayer(visMatrix, deltaTimeSeconds);
 
@@ -169,39 +161,59 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
     timeCount += (int) (currentTime - lastTime);
     lastTime = currentTime;
     
-    if (timeCount >= 10 * CLOCKS_PER_SEC) {
-        //cout << "yes" << endl;
+    // spawn new enemy every 3 seconds
+    if (timeCount >= 3 * CLOCKS_PER_SEC) {
+        cout << "yes" << endl;
         // spawn new enemy at random place in map
-        int min = mapCorner + enemyBodySquareSide;
-        int maxX = mapCorner + mapLength * mapScaleX - enemyBodySquareSide;
-        int maxY = mapCorner + mapLength * mapScaleY - enemyBodySquareSide;
+        int maxX = (int) ( mapLength*mapScaleX - 80);
+        int maxY = (int) ( mapLength*mapScaleY - 80);
 
 
         Enemy* newEnemy = new Enemy();
-        newEnemy->pozX = rand() % maxX  + min;
-        newEnemy->pozY = rand() % maxY + min;
+        newEnemy->pozX = rand() % maxX + 80;
+        newEnemy->pozY = rand() % maxY + 80;
         newEnemy->defeated = false;
+
+
+        if (transPlayerX - newEnemy->pozX != 0) {
+            newEnemy->angle = atan2(transPlayerY - newEnemy->pozY, transPlayerX - newEnemy->pozX);
+        }
+        else {
+            newEnemy->angle = 0;
+        }
+       
         // give enemy random speed
         newEnemy->speed = rand()% 200 + 50;
-        //cout << newEnemy->speed << endl;
-
         enemies.push_back(newEnemy);
-        DrawEnemy(newEnemy, visMatrix, deltaTimeSeconds);
-        
         // reset  enemy spawn timer
         timeCount = 0;
 
     }
 
     // draw and move alive enemies 
-    //for (int i = 0; i < enemies.size(); i++ ) {
-    //    Enemy* enemy = enemies[i];
-    //    
-    //        // change enemy pozition before drawing
-     
+    for (int i = 0; i < enemies.size(); i++ ) {
+        Enemy* e = enemies[i];
+        if (!e->defeated) {
+            // change enemy pozition before drawing to follow player
+            if (e->pozX < transPlayerX) {
+                e->pozX += deltaTimeSeconds * e->speed;
 
+            }
+            else if (e->pozX > transPlayerX){
+                e->pozX -= deltaTimeSeconds * e->speed;
+            }
+
+            if (e->pozY < transPlayerY) {
+                e->pozY += deltaTimeSeconds * e->speed;
+
+            }
+            else if (e->pozY > transPlayerY) {
+                    e->pozY -= deltaTimeSeconds * e->speed;
+            }
+            DrawEnemy(e, visMatrix, deltaTimeSeconds);
+        }
         
-    //}
+    }
     
 
     
@@ -209,64 +221,41 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds)
         Bullet* newBullet = new Bullet();
         newBullet->angle = mouseAngle;
         newBullet->speed = 100;
-        newBullet->initialX = resolution.x / 2;
-        newBullet->initialY = resolution.y / 2;
-        newBullet->positionX = resolution.x / 2;
-        newBullet->positionY = resolution.y / 2;
-        newBullet->transProjectileX = deltaTimeSeconds * sin(newBullet->angle);
-        newBullet->transProjectileY = deltaTimeSeconds * (-cos(newBullet->angle));
+        newBullet->initialX = transPlayerX + playerSquareSide/2;
+        newBullet->initialY = transPlayerY + playerSquareSide / 2;
+        newBullet->positionX = newBullet->initialX;
+        newBullet->positionY = newBullet->initialY;
+        newBullet->transProjectileX = newBullet->speed * deltaTimeSeconds * sin(newBullet->angle);
+        newBullet->transProjectileY = newBullet->speed * deltaTimeSeconds * (-cos(newBullet->angle));
 
         bullets.push_back(newBullet);
         spawnNewProjectile = false;
     }
 
     for (int i = 0; i < bullets.size(); i++) {
+        //cout << i << endl;
         Bullet* b = bullets[i];
         if (b->positionX < mapLength && b->positionY < mapLength) {
             b->positionX += b->transProjectileX;
             b->positionY += b->transProjectileY;
+            projectileMatrix =
+                visMatrix *
+                transform2D::Translate(b->positionX, b->positionY) *
+                transform2D::Rotate(b->angle);
+            RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
         }
         else {
             bullets.erase(bullets.begin() + i);
         }
-        projectileMatrix =
-            visMatrix *
-            transform2D::Translate(b->positionX, b->positionY) *
-            transform2D::Rotate(b->angle);
-        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);
     }
-        
 
-        //transProjectileX = deltaTimeSeconds * sin(mouseAngle);
-        //transProjectileY = deltaTimeSeconds * (-cos(mouseAngle));
-
-        //if (projectilePozitionX < mapLength && projectilePozitionY < mapLength) {
-        //    projectilePozitionX += transProjectileX;
-        //    projectilePozitionY += transProjectileY;
-        //}
-        //else {
-        //    spawnProjectile = false;
-        //    // reset bullet pozition 
-        //    projectilePozitionX = projectileIntialX;
-        //    projectilePozitionY = projectileIntialY;
-        //}
-
-
-        /*projectileMatrix =
-            visMatrix *
-            transform2D::Translate(projectilePozitionX, projectilePozitionY) *
-            transform2D::Rotate(projectileAngle);
-        RenderMesh2D(meshes["projectile"], shaders["VertexColor"], projectileMatrix);*/
-
-    }
-    
 }
+    
 
 void Tema1::DrawMap(glm::mat3 visMatrix) {
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(mapCorner, mapCorner) *
         transform2D::Scale(mapScaleX, mapScaleY);
     RenderMesh2D(meshes["map"], shaders["VertexColor"], mapModel);
 
@@ -307,34 +296,41 @@ void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds) {
     RenderMesh2D(meshes["playerBody"], shaders["VertexColor"], playerBodyModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, 0);
+    playerPartsModelMatrix *= transform2D::Translate(0, -playerSmallPartsSquareSide);
+
 
     RenderMesh2D(meshes["playerSmallPart"], shaders["VertexColor"], playerPartsModelMatrix);
 
     playerPartsModelMatrix = playerBodyModelMatrix;
-    playerPartsModelMatrix *= transform2D::Translate(playerSquareSide, playerSquareSide - playerSmallPartsSquareSide);
+    playerPartsModelMatrix *= transform2D::Translate(playerSquareSide - playerSmallPartsSquareSide, -playerSmallPartsSquareSide);
+
 
     RenderMesh2D(meshes["playerSmallPart"], shaders["VertexColor"], playerPartsModelMatrix);
    
 }
 
 void Tema1::DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds) { 
-    
+    if (transPlayerX - enemy->pozX != 0) {
+        enemy->angle = atan2(transPlayerY - enemy->pozY, transPlayerX - enemy->pozX);
+    }
+    else {
+        enemy->angle = 0;
+    }
+    enemyBodyModelMatrix = glm::mat3(1);
+    enemyBodyModelMatrix = visMatrix * transform2D::Translate(enemy->pozX, enemy->pozY) *
+        transform2D::Rotate(enemy->angle);
+    //enemyBodyModelMatrix = visMatrix * transform2D::Translate(-140, -140);
+    RenderMesh2D(meshes["enemyBody"], shaders["VertexColor"], enemyBodyModelMatrix);
+
     enemyArmsModelMatrix = glm::mat3(1);
     //enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -90);
-    enemyArmsModelMatrix = visMatrix * transform2D::Translate(enemy->pozX + 60, enemy->pozY + 50);
+    enemyArmsModelMatrix = enemyBodyModelMatrix * transform2D::Translate(60, 50);
     RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
 
     enemyArmsModelMatrix = glm::mat3(1);
     //enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -150);
-    enemyArmsModelMatrix = visMatrix * transform2D::Translate(enemy->pozX + 60, enemy->pozY - 10);
+    enemyArmsModelMatrix = enemyBodyModelMatrix * transform2D::Translate(60, - 10);
     RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
-
-
-    enemyBodyModelMatrix = glm::mat3(1);
-    enemyBodyModelMatrix = visMatrix * transform2D::Translate(enemy->pozX, enemy->pozY);
-    //enemyBodyModelMatrix = visMatrix * transform2D::Translate(-140, -140);
-    RenderMesh2D(meshes["enemyBody"], shaders["VertexColor"], enemyBodyModelMatrix);
 }
 
 void Tema1::FrameEnd()
@@ -385,7 +381,7 @@ void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
     // Add mouse move event
     resolution = window->GetResolution();
     mouseAngle = atan2(mouseX - resolution.x/2, mouseY - resolution.y/2);
-    mouseAngle -= RADIANS(90);
+    //mouseAngle -= RADIANS(90);
 
 }
 

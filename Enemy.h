@@ -15,6 +15,7 @@ namespace m1 {
 
 		float enemyBodySquareSide = 80;
 		float enemyArmsSquareSide = 40;
+		float angle;
 		bool defeated;
 		float speed;
 	};
