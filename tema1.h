@@ -67,7 +67,6 @@ namespace m1
         void DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
         void DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds);
         void CheckColisionEnemyPlayer(Enemy* e, int i);
-        void CheckColisionPlayerMap();
 
     protected:
         // variables here

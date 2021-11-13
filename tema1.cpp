@@ -36,6 +36,7 @@ void Tema1::Init()
 
     mouseAngle = 0;
 
+    mapCorner = 0;
     mapLength = 1000;  
     obstacleLength = 200;
     mapScaleX = 2; mapScaleY = 1;
@@ -127,7 +128,6 @@ void Tema1::FrameStart()
 
 void Tema1::Update(float deltaTimeSeconds) 
 {
-
     // pentru fereastra
     resolution = window->GetResolution();
 
@@ -254,21 +254,7 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
 
 }
 
-/*
 
-bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
-{
-    // collision x-axis?
-    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-        two.Position.x + two.Size.x >= one.Position.x;
-    // collision y-axis?
-    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
-        two.Position.y + two.Size.y >= one.Position.y;
-    // collision only if on both axes
-    return collisionX && collisionY;
-}
-
-*/
 
 void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
     float px1 = transPlayerX;
@@ -286,14 +272,23 @@ void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
 
 }
 
-void Tema1::CheckColisionPlayerMap() {
-    float px1 = transPlayerX;
-    float px2 = transPlayerX + playerSquareSide;
-    float py1 = transPlayerY;
-    float py2 = transPlayerY + playerSquareSide;
+/*
 
-
+bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
+{
+    // collision x-axis?
+    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+        two.Position.x + two.Size.x >= one.Position.x;
+    // collision y-axis?
+    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+        two.Position.y + two.Size.y >= one.Position.y;
+    // collision only if on both axes
+    return collisionX && collisionY;
 }
+
+*/
+
+
     
 
 void Tema1::DrawMap(glm::mat3 visMatrix) {
@@ -381,24 +376,31 @@ void Tema1::FrameEnd()
 
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
+    
     if (window->KeyHold(GLFW_KEY_W)) {
-        logicSpace.y += 100 * deltaTime;
-        transPlayerY += 100 * deltaTime;
+        if ((transPlayerY + playerSquareSide) < mapLength * mapScaleY) {
+            logicSpace.y += 100 * deltaTime;
+            transPlayerY += 100 * deltaTime;
+        }
     }
     if (window->KeyHold(GLFW_KEY_S)) {
-        logicSpace.y -= 100 * deltaTime;
-        transPlayerY -= 100 * deltaTime;
-
+        if ((transPlayerY) > 0) {
+            logicSpace.y -= 100 * deltaTime;
+            transPlayerY -= 100 * deltaTime;
+        }
     }
     if (window->KeyHold(GLFW_KEY_A)) {
-        logicSpace.x -= 100 * deltaTime;
-        transPlayerX -= 100 * deltaTime;
+        if (transPlayerX > 0) {
+            logicSpace.x -= 100 * deltaTime;
+            transPlayerX -= 100 * deltaTime;
+        }
 
     }
     if (window->KeyHold(GLFW_KEY_D)) {
-        logicSpace.x += 100 * deltaTime;
-        transPlayerX += 100 * deltaTime;
-
+        if ((transPlayerX + playerSquareSide) < mapLength * mapScaleX) {
+            logicSpace.x += 100 * deltaTime;
+            transPlayerX += 100 * deltaTime;
+        }
     }
 
     visMatrix *= VisualizationTransf2DUnif(logicSpace, viewSpace);
