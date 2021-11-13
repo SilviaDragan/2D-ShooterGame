@@ -63,9 +63,11 @@ namespace m1
         glm::mat3 VisualizationTransf2D(const LogicSpace& logicSpace, const ViewportSpace& viewSpace);
         void SetViewportArea(const ViewportSpace& viewSpace, glm::vec3 colorColor = glm::vec3(0), bool clear = true);
         void DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds);
-        void Tema1::DrawMap(glm::mat3 visMatrix);
-        void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
-        void Tema1::DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds);
+        void DrawMap(glm::mat3 visMatrix);
+        void DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
+        void DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds);
+        void CheckColisionEnemyPlayer(Enemy* e, int i);
+        void CheckColisionPlayerMap();
 
     protected:
         // variables here
@@ -88,9 +90,8 @@ namespace m1
         vector<Enemy*> enemies;
         glm::mat3 enemyBodyModelMatrix;
         glm::mat3 enemyArmsModelMatrix;
-        float enemySpeed; // cred ca poate fi sters
-        float enemyPozX, enemyPozY;
         float enemyBodySquareSide;
+        float efx, efy; // enemy front position
 
 
         clock_t currentTime;
@@ -99,12 +100,7 @@ namespace m1
         
 
         vector<Bullet*> bullets;
-        /*float projectileLength, transProjectileX, transProjectileY, projectilePozitionX, projectilePozitionY;
-        bool spawnProjectile;
-        float projectileAngle, projectileSpeed = 100;
-        float projectileIntialX, projectileIntialY;*/
         bool spawnNewProjectile;
-
 
 
         ViewportSpace viewSpace;

@@ -47,22 +47,12 @@ void Tema1::Init()
     Bullet* bullet = new Bullet();
     bullet->projectileLength = 20;
     spawnNewProjectile = false;
-    /*transProjectileX = projectileLength;
-    transProjectileY = -projectileLength;*/
-
-    /*projectilePozitionX = (resolution.x - playerSquareSide) / 2 + projectileLength;
-    projectilePozitionY = (resolution.y - playerSquareSide) / 2 -projectileLength;
-
-    projectileIntialX = (resolution.x - playerSquareSide + projectileLength) / 2;
-    projectileIntialY = (resolution.y - playerSquareSide + projectileLength) / 2;*/
 
     Mesh* playerBody = object2D::CreateSquare("playerBody", glm::vec3(0, 0, 0), playerSquareSide, glm::vec3(0.1f, 0.4f, 0.3f), true);
     Mesh* playerSmallPart = object2D::CreateSquare("playerSmallPart", glm::vec3(0, 0, 0), playerSmallPartsSquareSide, glm::vec3(0, 0.6f, 0.3f), true);
 
     // enemy just for rendering meshez
     enemy = new Enemy();
-    // initialize enemies list
-
   
 
     AddMeshToList(playerBody);
@@ -158,15 +148,14 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
 
     // la fiecare 15 secunde spawnez un inamic nou pe harta
     currentTime = clock();
-    timeCount += (int) (currentTime - lastTime);
+    timeCount += (int)(currentTime - lastTime);
     lastTime = currentTime;
-    
+
     // spawn new enemy every 3 seconds
     if (timeCount >= 3 * CLOCKS_PER_SEC) {
-        cout << "yes" << endl;
         // spawn new enemy at random place in map
-        int maxX = (int) ( mapLength*mapScaleX - 80);
-        int maxY = (int) ( mapLength*mapScaleY - 80);
+        int maxX = (int)(mapLength * mapScaleX - 80);
+        int maxY = (int)(mapLength * mapScaleY - 80);
 
 
         Enemy* newEnemy = new Enemy();
@@ -181,9 +170,9 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
         else {
             newEnemy->angle = 0;
         }
-       
+
         // give enemy random speed
-        newEnemy->speed = rand()% 200 + 50;
+        newEnemy->speed = rand() % 200 + 50;
         enemies.push_back(newEnemy);
         // reset  enemy spawn timer
         timeCount = 0;
@@ -191,37 +180,42 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
     }
 
     // draw and move alive enemies 
-    for (int i = 0; i < enemies.size(); i++ ) {
+    for (int i = 0; i < enemies.size(); i++) {
         Enemy* e = enemies[i];
         if (!e->defeated) {
+            // collision with player
+            CheckColisionEnemyPlayer(e, i);
+
             // change enemy pozition before drawing to follow player
-            if (e->pozX < transPlayerX) {
+            if (e->pozX < transPlayerX + playerSquareSide / 2) {
                 e->pozX += deltaTimeSeconds * e->speed;
 
             }
-            else if (e->pozX > transPlayerX){
+            else if (e->pozX > transPlayerX + playerSquareSide / 2) {
                 e->pozX -= deltaTimeSeconds * e->speed;
             }
 
-            if (e->pozY < transPlayerY) {
+            if (e->pozY < transPlayerY + playerSquareSide / 2) {
                 e->pozY += deltaTimeSeconds * e->speed;
 
             }
-            else if (e->pozY > transPlayerY) {
-                    e->pozY -= deltaTimeSeconds * e->speed;
+            else if (e->pozY > transPlayerY + playerSquareSide / 2) {
+                e->pozY -= deltaTimeSeconds * e->speed;
             }
             DrawEnemy(e, visMatrix, deltaTimeSeconds);
         }
-        
-    }
-    
+        else {
+            // add score for each defeated enemy
+            enemies.erase(enemies.begin() + i);
+        }
 
-    
+    }
+
     if (spawnNewProjectile) {
         Bullet* newBullet = new Bullet();
         newBullet->angle = mouseAngle;
         newBullet->speed = 100;
-        newBullet->initialX = transPlayerX + playerSquareSide/2;
+        newBullet->initialX = transPlayerX + playerSquareSide / 2;
         newBullet->initialY = transPlayerY + playerSquareSide / 2;
         newBullet->positionX = newBullet->initialX;
         newBullet->positionY = newBullet->initialY;
@@ -233,8 +227,8 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
     }
 
     for (int i = 0; i < bullets.size(); i++) {
-        //cout << i << endl;
         Bullet* b = bullets[i];
+
         if (b->positionX < mapLength && b->positionY < mapLength) {
             b->positionX += b->transProjectileX;
             b->positionY += b->transProjectileY;
@@ -247,7 +241,57 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
         else {
             bullets.erase(bullets.begin() + i);
         }
+
+        /*for (int j = 0; j < enemies.size(); j++) {
+            Enemy* e = enemies[i];
+            if (b->positionX == e->pozX || b->positionY == e->pozY) {
+                e->defeated = true;
+                bullets.erase(bullets.begin() + i);
+                break;
+            }
+        }*/
     }
+
+}
+
+/*
+
+bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
+{
+    // collision x-axis?
+    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+        two.Position.x + two.Size.x >= one.Position.x;
+    // collision y-axis?
+    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+        two.Position.y + two.Size.y >= one.Position.y;
+    // collision only if on both axes
+    return collisionX && collisionY;
+}
+
+*/
+
+void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
+    float px1 = transPlayerX;
+    float px2 = transPlayerX + playerSquareSide;
+    float py1 = transPlayerY;
+    float py2 = transPlayerY + playerSquareSide;
+
+
+    if ( e->pozX + e->enemyBodySquareSide >= px1 && e->pozX <= px2  &&
+         e->pozY + e->enemyBodySquareSide >= py1 && e->pozY <= py2) {
+
+        // decrease health and delete enemy
+        enemies.erase(enemies.begin() + i);
+    }
+
+}
+
+void Tema1::CheckColisionPlayerMap() {
+    float px1 = transPlayerX;
+    float px2 = transPlayerX + playerSquareSide;
+    float py1 = transPlayerY;
+    float py2 = transPlayerY + playerSquareSide;
+
 
 }
     
@@ -311,7 +355,7 @@ void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds) {
 
 void Tema1::DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds) { 
     if (transPlayerX - enemy->pozX != 0) {
-        enemy->angle = atan2(transPlayerY - enemy->pozY, transPlayerX - enemy->pozX);
+        enemy->angle = atan2(transPlayerY - enemy->pozY, transPlayerX - enemy->pozX );
     }
     else {
         enemy->angle = 0;
@@ -319,16 +363,13 @@ void Tema1::DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds)
     enemyBodyModelMatrix = glm::mat3(1);
     enemyBodyModelMatrix = visMatrix * transform2D::Translate(enemy->pozX, enemy->pozY) *
         transform2D::Rotate(enemy->angle);
-    //enemyBodyModelMatrix = visMatrix * transform2D::Translate(-140, -140);
     RenderMesh2D(meshes["enemyBody"], shaders["VertexColor"], enemyBodyModelMatrix);
 
     enemyArmsModelMatrix = glm::mat3(1);
-    //enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -90);
     enemyArmsModelMatrix = enemyBodyModelMatrix * transform2D::Translate(60, 50);
     RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
 
     enemyArmsModelMatrix = glm::mat3(1);
-    //enemyArmsModelMatrix = visMatrix * transform2D::Translate(-80, -150);
     enemyArmsModelMatrix = enemyBodyModelMatrix * transform2D::Translate(60, - 10);
     RenderMesh2D(meshes["enemyArm"], shaders["VertexColor"], enemyArmsModelMatrix);
 }
@@ -381,7 +422,6 @@ void Tema1::OnMouseMove(int mouseX, int mouseY, int deltaX, int deltaY)
     // Add mouse move event
     resolution = window->GetResolution();
     mouseAngle = atan2(mouseX - resolution.x/2, mouseY - resolution.y/2);
-    //mouseAngle -= RADIANS(90);
 
 }
 
