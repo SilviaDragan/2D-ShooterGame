@@ -67,7 +67,8 @@ namespace m1
         void DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds);
         void DrawEnemy(Enemy* enemy, glm::mat3 visMatrix, float deltaTimeSeconds);
         void CheckColisionEnemyPlayer(Enemy* e, int i);
-
+        void CheckObsCollision(float deltaTime, float obsX, float obsY, float obsWidth, float obsHeight);
+    
     protected:
         // variables here
         glm::ivec2 resolution;
@@ -82,6 +83,13 @@ namespace m1
         float mapLength, obstacleLength;
         float mapCorner;
         float mapScaleX, mapScaleY;
+
+        // coordinates for obstacles
+        float obsX1, obsX2, obsX3, obsX4, obsX5;
+        float obsY1, obsY2, obsY3, obsY4, obsY5;
+        float obsWidth1, obsWidth2, obsWidth3, obsWidth4, obsWidth5;
+        float obsHeight1, obsHeight2, obsHeight3, obsHeight4, obsHeight5;
+
 
         //enemy just for rendering meshes
         Enemy* enemy;

@@ -242,19 +242,9 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
             bullets.erase(bullets.begin() + i);
         }
 
-        /*for (int j = 0; j < enemies.size(); j++) {
-            Enemy* e = enemies[i];
-            if (b->positionX == e->pozX || b->positionY == e->pozY) {
-                e->defeated = true;
-                bullets.erase(bullets.begin() + i);
-                break;
-            }
-        }*/
     }
 
 }
-
-
 
 void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
     float px1 = transPlayerX;
@@ -263,7 +253,7 @@ void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
     float py2 = transPlayerY + playerSquareSide;
 
 
-    if ( e->pozX + e->enemyBodySquareSide >= px1 && e->pozX <= px2  &&
+    if ( e->pozX + 2*e->enemyBodySquareSide >= px1 && e->pozX <= px2  &&
          e->pozY + e->enemyBodySquareSide >= py1 && e->pozY <= py2) {
 
         // decrease health and delete enemy
@@ -271,23 +261,6 @@ void Tema1::CheckColisionEnemyPlayer(Enemy* e, int i) {
     }
 
 }
-
-/*
-
-bool CheckCollision(GameObject &one, GameObject &two) // AABB - AABB collision
-{
-    // collision x-axis?
-    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-        two.Position.x + two.Size.x >= one.Position.x;
-    // collision y-axis?
-    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
-        two.Position.y + two.Size.y >= one.Position.y;
-    // collision only if on both axes
-    return collisionX && collisionY;
-}
-
-*/
-
 
     
 
@@ -298,27 +271,61 @@ void Tema1::DrawMap(glm::mat3 visMatrix) {
         transform2D::Scale(mapScaleX, mapScaleY);
     RenderMesh2D(meshes["map"], shaders["VertexColor"], mapModel);
 
-
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(100, -50) *
+        transform2D::Translate(200, 50) *
         transform2D::Scale(1.75f, 0.5f);
     RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], mapModel);
+    obsX1 = 200;
+    obsY1 = 50;
+    obsWidth1 = obstacleLength * 1.75f;
+    obsHeight1= obstacleLength * 0.5f;
+
 
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(800, 200) *
+        transform2D::Translate(900, 200) *
         transform2D::Scale(0.5f, 1.75f);
     RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], mapModel);
+    obsX2 = 900;
+    obsY2 = 200;
+    obsWidth2 = obstacleLength * 0.5f;
+    obsHeight2 = obstacleLength * 1.75f;
 
     mapModel = glm::mat3(1);
     mapModel *=
         visMatrix *
-        transform2D::Translate(100, 500) *
-        transform2D::Scale(2.5f, 0.25);
+        transform2D::Translate(700, 700) *
+        transform2D::Scale(2.5f, 0.25f);
     RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], mapModel);
+    obsX3 = 700;
+    obsY3 = 700;
+    obsWidth3 = obstacleLength * 2.5f;
+    obsHeight3 = obstacleLength * 0.25f;
+
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(300, 500) *
+        transform2D::Scale(2, 0.25f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], mapModel);
+    obsX4 = 300;
+    obsY4 = 500;
+    obsWidth4 = obstacleLength * 2;
+    obsHeight4 = obstacleLength * 0.25f;
+
+    mapModel = glm::mat3(1);
+    mapModel *=
+        visMatrix *
+        transform2D::Translate(1500, 400) *
+        transform2D::Scale(0.4f, 2.5f);
+    RenderMesh2D(meshes["obstacle"], shaders["VertexColor"], mapModel);
+    obsX5 = 1500;
+    obsY5 = 400;
+    obsWidth5 = obstacleLength * 0.4f;
+    obsHeight5 = obstacleLength * 2.5f;
 }
 
 void Tema1::DrawPlayer(glm::mat3 visMatrix, float deltaTimeSeconds) {
@@ -373,15 +380,45 @@ void Tema1::FrameEnd()
 {
 }
 
+/*
+bool CheckCollision(GameObject& one, GameObject& two) // AABB - AABB collision
+{
+    // collision x-axis?
+    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
+        two.Position.x + two.Size.x >= one.Position.x;
+    // collision y-axis?
+    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
+        two.Position.y + two.Size.y >= one.Position.y;
+    // collision only if on both axes
+    return collisionX && collisionY;
+}
+*/
+
+void Tema1::CheckObsCollision(float deltaTime, float obsX, float obsY, float obsWidth, float obsHeight) {
+    if (transPlayer) {
+
+    }
+}
+
 
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
     
+    CheckObsCollision(deltaTime, obsX1, obsY1, obsWidth1, obsHeight1);
+    CheckObsCollision(deltaTime, obsX2, obsY2, obsWidth2, obsHeight2);
+    CheckObsCollision(deltaTime, obsX3, obsY3, obsWidth3, obsHeight3);
+    CheckObsCollision(deltaTime, obsX4, obsY4, obsWidth4, obsHeight4);
+    CheckObsCollision(deltaTime, obsX5, obsY5, obsWidth5, obsHeight5);
+
+
     if (window->KeyHold(GLFW_KEY_W)) {
-        if ((transPlayerY + playerSquareSide) < mapLength * mapScaleY) {
+        // coliziuni player-pereti harta
+        // coliziuni player-obstacole
+        if ((transPlayerY + playerSquareSide) < mapLength * mapScaleY ) {
             logicSpace.y += 100 * deltaTime;
             transPlayerY += 100 * deltaTime;
         }
+
     }
     if (window->KeyHold(GLFW_KEY_S)) {
         if ((transPlayerY) > 0) {
