@@ -14,6 +14,7 @@ namespace m1 {
 		float angle;
 		float speed;
 		float initialX, initialY;
+		float distance;
 
 	};
 

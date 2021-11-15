@@ -112,6 +112,7 @@ namespace m1
         clock_t currentTimeForBullets;
         float fireRate;
         float countForBullets;
+        float bulletMaxDistance;
 
 
         ViewportSpace viewSpace;

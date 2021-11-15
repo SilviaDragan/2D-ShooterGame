@@ -47,6 +47,7 @@ void Tema1::Init()
     lastBullet = currentTimeForBullets;
     timeCount = 0;
     countForBullets = 0;
+    bulletMaxDistance = 800;
 
     fireRate = 0.5f;
 
@@ -235,6 +236,7 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
             newBullet->positionY = newBullet->initialY;
             newBullet->transProjectileX = newBullet->speed * deltaTimeSeconds * sin(newBullet->angle);
             newBullet->transProjectileY = newBullet->speed * deltaTimeSeconds * (-cos(newBullet->angle));
+            newBullet->distance = 0;
 
             bullets.push_back(newBullet);
             spawnNewProjectile = false;
@@ -247,9 +249,11 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
     for (int i = 0; i < bullets.size(); i++) {
         Bullet* b = bullets[i];
 
-        if (b->positionX < mapLength && b->positionY < mapLength) {
+        if (b->positionX < mapLength && b->positionY < mapLength 
+            && b->distance < bulletMaxDistance) {
             b->positionX += b->transProjectileX;
             b->positionY += b->transProjectileY;
+            b->distance += b->transProjectileX;
             projectileMatrix =
                 visMatrix *
                 transform2D::Translate(b->positionX, b->positionY) *
