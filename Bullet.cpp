@@ -12,5 +12,5 @@ Bullet::~Bullet() {
 }
 
 Mesh* Bullet::generateBulletMesh() {
-	return object2D::CreateSquare("projectile", glm::vec3(0, 0, 0), 20, glm::vec3(0.2f, 0.5f, 0), true);
+	return object2D::CreateSquare("projectile", glm::vec3(0, 0, 0), 20, glm::vec3(0, 0, 0), true);
 }

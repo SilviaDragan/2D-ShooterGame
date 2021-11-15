@@ -42,8 +42,13 @@ void Tema1::Init()
     mapScaleX = 2; mapScaleY = 1;
 
     currentTime = clock();
+    currentTimeForBullets = clock();
     lastTime = currentTime;
+    lastBullet = currentTimeForBullets;
     timeCount = 0;
+    countForBullets = 0;
+
+    fireRate = 0.5f;
 
     Bullet* bullet = new Bullet();
     bullet->projectileLength = 20;
@@ -212,18 +217,31 @@ void Tema1::DrawScene(glm::mat3 visMatrix, float deltaTimeSeconds) {
     }
 
     if (spawnNewProjectile) {
-        Bullet* newBullet = new Bullet();
-        newBullet->angle = mouseAngle;
-        newBullet->speed = 100;
-        newBullet->initialX = transPlayerX + playerSquareSide / 2;
-        newBullet->initialY = transPlayerY + playerSquareSide / 2;
-        newBullet->positionX = newBullet->initialX;
-        newBullet->positionY = newBullet->initialY;
-        newBullet->transProjectileX = newBullet->speed * deltaTimeSeconds * sin(newBullet->angle);
-        newBullet->transProjectileY = newBullet->speed * deltaTimeSeconds * (-cos(newBullet->angle));
+        lastBullet = currentTimeForBullets;
 
-        bullets.push_back(newBullet);
-        spawnNewProjectile = false;
+        currentTimeForBullets = clock();
+        countForBullets += (int)(currentTimeForBullets - lastBullet);
+        lastBullet = currentTimeForBullets;
+
+        // nu lasa playerul sa trimita proiectile mai des decat fire rate
+        if (countForBullets >= fireRate * CLOCKS_PER_SEC) {
+
+            Bullet* newBullet = new Bullet();
+            newBullet->angle = mouseAngle;
+            newBullet->speed = 100;
+            newBullet->initialX = transPlayerX + playerSquareSide / 2;
+            newBullet->initialY = transPlayerY + playerSquareSide / 2;
+            newBullet->positionX = newBullet->initialX;
+            newBullet->positionY = newBullet->initialY;
+            newBullet->transProjectileX = newBullet->speed * deltaTimeSeconds * sin(newBullet->angle);
+            newBullet->transProjectileY = newBullet->speed * deltaTimeSeconds * (-cos(newBullet->angle));
+
+            bullets.push_back(newBullet);
+            spawnNewProjectile = false;
+
+            countForBullets = 0;
+        }
+
     }
 
     for (int i = 0; i < bullets.size(); i++) {
@@ -380,40 +398,12 @@ void Tema1::FrameEnd()
 {
 }
 
-/*
-bool CheckCollision(GameObject& one, GameObject& two) // AABB - AABB collision
-{
-    // collision x-axis?
-    bool collisionX = one.Position.x + one.Size.x >= two.Position.x &&
-        two.Position.x + two.Size.x >= one.Position.x;
-    // collision y-axis?
-    bool collisionY = one.Position.y + one.Size.y >= two.Position.y &&
-        two.Position.y + two.Size.y >= one.Position.y;
-    // collision only if on both axes
-    return collisionX && collisionY;
-}
-*/
-
-void Tema1::CheckObsCollision(float deltaTime, float obsX, float obsY, float obsWidth, float obsHeight) {
-    if (transPlayer) {
-
-    }
-}
-
 
 void Tema1::OnInputUpdate(float deltaTime, int mods){
     // Move the logic window with W, A, S, D (up, left, down, right)
-    
-    CheckObsCollision(deltaTime, obsX1, obsY1, obsWidth1, obsHeight1);
-    CheckObsCollision(deltaTime, obsX2, obsY2, obsWidth2, obsHeight2);
-    CheckObsCollision(deltaTime, obsX3, obsY3, obsWidth3, obsHeight3);
-    CheckObsCollision(deltaTime, obsX4, obsY4, obsWidth4, obsHeight4);
-    CheckObsCollision(deltaTime, obsX5, obsY5, obsWidth5, obsHeight5);
-
 
     if (window->KeyHold(GLFW_KEY_W)) {
         // coliziuni player-pereti harta
-        // coliziuni player-obstacole
         if ((transPlayerY + playerSquareSide) < mapLength * mapScaleY ) {
             logicSpace.y += 100 * deltaTime;
             transPlayerY += 100 * deltaTime;

@@ -103,11 +103,15 @@ namespace m1
 
         clock_t currentTime;
         clock_t lastTime;
+        clock_t lastBullet;
         float timeCount;
         
 
         vector<Bullet*> bullets;
         bool spawnNewProjectile;
+        clock_t currentTimeForBullets;
+        float fireRate;
+        float countForBullets;
 
 
         ViewportSpace viewSpace;
